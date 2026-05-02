@@ -1,75 +1,100 @@
-from typing import List, Tuple, Literal
-import random
-import unittest
+## Общее описание
+Программа реализует игру "Угадай число", где компьютер загадывает число в заданном пользователем диапазоне, а затем находит его с помощью одного из двух алгоритмов поиска.
+
+## Функции
+
+### guess_number(target, numbers, method="linear")
+Основная функция для поиска числа.
+
+Параметры:
+- target (int): Искомое число, которое нужно найти.
+- numbers (List[int]): Список целых чисел, в котором производится поиск.
+- method (Literal["linear", "binary"], опционально): Метод поиска:
+  - "linear" — последовательный (линейный) перебор
+  - "binary" — бинарный (двоичный) поиск
+  - По умолчанию: "linear"
+
+Возвращаемое значение:
+- Tuple[int, int]: Кортеж из двух элементов:
+  1. Найденное число (int)
+  2. Количество попыток (int), затраченных на поиск
+
+Исключения:
+- ValueError: Если искомое число отсутствует в списке
+- ValueError: Если указан некорректный метод поиска
+
+Пример использования:
+# Линейный поиск
+result = guess_number(5, [1, 2, 3, 4, 5], "linear")
+# Результат: (5, 5)
+
+# Бинарный поиск
+result = guess_number(5, [1, 2, 3, 4, 5], "binary")
+# Результат: (5, 2)
 
 
-def guess_number(
-    target: int,
-    numbers: List[int],
-    method: Literal["linear", "binary"] = "linear"
-) -> Tuple[int, int]:
+### input_values()
+Вспомогательная функция для ввода данных с клавиатуры.
 
-    if method == "linear":
-        attempts = 0
-        for num in numbers:
-            attempts += 1
-            if num == target:
-                return num, attempts
-        raise ValueError("Number not found in list")
+Параметры:
+- Отсутствуют (данные вводятся с клавиатуры)
 
-    elif method == "binary":
-        sorted_numbers = sorted(numbers)
-        low, high = 0, len(sorted_numbers) - 1
-        attempts = 0
-        while low <= high:
-            attempts += 1
-            mid = (low + high) // 2
-            guess = sorted_numbers[mid]
-            if guess == target:
-                return guess, attempts
-            elif guess < target:
-                low = mid + 1
-            else:
-                high = mid - 1
-        raise ValueError("Number not found in list")
+Возвращаемое значение:
+- Tuple[int, List[int]]: Кортеж из двух элементов:
+  1. Загаданное число (int)
+  2. Список чисел от начала до конца диапазона (List[int])
 
-    else:
-        raise ValueError("Invalid search method")
+Пример использования:
+target, numbers = input_values()
+# Пользователь вводит: 1 и 10
+# Результат: (случайное число от 1 до 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
 
-def input_values() -> Tuple[int, List[int]]:
+## Классы
 
-    start = int(input("Введите начало диапазона: "))
-    end = int(input("Введите конец диапазона: "))
-    numbers = list(range(start, end + 1))
-    target = random.choice(numbers)
-    return target, numbers
+### TestGuessNumber(unittest.TestCase)
+Класс для модульного тестирования функций программы.
 
+Методы:
+- setUp(): Подготовка тестовых данных (создание списка чисел от 1 до 10)
+- test_linear_search_found(): Проверка линейного поиска существующего числа
+- test_binary_search_found(): Проверка бинарного поиска существующего числа
+- test_number_not_found(): Проверка обработки отсутствующего числа
+- test_invalid_method(): Проверка обработки некорректного метода поиска
 
-class TestGuessNumber(unittest.TestCase):
-    def setUp(self):
-        self.numbers = list(range(1, 11))
+## Алгоритмы поиска
 
-    def test_linear_search_found(self):
-        target = 7
-        found, attempts = guess_number(target, self.numbers, "linear")
-        self.assertEqual(found, target)
-        self.assertEqual(attempts, 7)
+### Линейный поиск (method="linear")
+- Сложность: O(n)
+- Описание: Последовательно перебирает все элементы списка до нахождения искомого числа
+- Особенности: Не требует сортировки списка
 
-    def test_binary_search_found(self):
-        target = 7
-        found, attempts = guess_number(target, self.numbers, "binary")
-        self.assertEqual(found, target)
-        self.assertLessEqual(attempts, len(self.numbers).bit_length())
+### Бинарный поиск (method="binary")
+- Сложность: O(log n)
+- Описание: Делит отсортированный список пополам на каждом шаге
+- Особенности: Требует предварительной сортировки списка
 
-    def test_number_not_found(self):
-        with self.assertRaises(ValueError):
-            guess_number(100, self.numbers, "linear")
+## Использование программы
 
-    def test_invalid_method(self):
-        with self.assertRaises(ValueError):
-            guess_number(5, self.numbers, "unknown")
+### Запуск с тестами
+python guess_number.py
 
 
-if __name__ == "__main__":
-    unittest.main(argv=[""], verbosity=2, exit=False)
+### Пример работы
+# Ввод диапазона
+target, numbers = input_values()
+# Пользователь вводит: 1 100
+
+# Линейный поиск
+found, attempts = guess_number(target, numbers, "linear")
+print(f"Найдено: {found}, попыток: {attempts}")
+
+# Бинарный поиск
+found, attempts = guess_number(target, numbers, "binary")
+print(f"Найдено: {found}, попыток: {attempts}")
+
+
+## Примечания
+- Список чисел должен содержать уникальные значения
+- Для бинарного поиска список автоматически сортируется
+- Количество попыток при бинарном поиске не превышает log₂(n) + 1
